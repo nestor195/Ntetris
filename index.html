@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>tetris js</title>
+</head>
+
+<body>
+
+    <canvas id="canvas"></canvas>
+    <script>
+        // Constantes
+        const BOARD_WIDTH = 10;
+        const BOARD_HEIGHT = 20;
+        const PIECE_COLORS = ['#FF0000', '#00FF00', '#0000FF', '#FFFF00', '#00FFFF', '#FF00FF', '#FFFFFF'];
+        const PIECE_SHAPES = [
+            // I
+            [
+                [1, 1, 1, 1]
+            ],
+            // J
+            [
+                [0, 0, 2],
+                [2, 2, 2]
+            ],
+            // L
+            [
+                [3, 0, 0],
+                [3, 3, 3]
+            ],
+            // O
+            [
+                [4, 4],
+                [4, 4]
+            ],
+            // S
+            [
+                [0, 5, 5],
+                [5, 5, 0]
+            ],
+            // T
+            [
+                [0, 6, 0],
+                [6, 6, 6]
+            ],
+            // Z
+            [
+                [7, 7, 0],
+                [0, 7, 7]
+            ]
+        ];
+        const TICK_TIME = 1000; // 1000ms = 1 segundo
+
+        // Variables
+        let board = [
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        ];
+        let currentPiece = null;
+        let currentX = 0;
+        let currentY = -1;
+        let score = 0;
+        let lines = 0;
+        let gameOver = false;
+        currentPiece = getRandomPiece();
+
+        // Obtener referencia al canvas y al contexto de dibujo
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+
+        // Definir tamaño del canvas
+        canvas.width = 300;
+        canvas.height = 600;
+
+        // Dibujar el tablero
+        ctx.fillStyle = '#000';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        // Definir tamaño de las celdas y bordes
+        const CELL_SIZE = 30;
+        const BORDER_WIDTH = 2;
+
+        // Dibujar las celdas del tablero
+        for (let y = 0; y < BOARD_HEIGHT; y++) {
+            for (let x = 0; x < BOARD_WIDTH; x++) {
+                // Calcular la posición en píxeles de la celda
+                const xPos = x * CELL_SIZE;
+                const yPos = y * CELL_SIZE;
+
+                // Dibujar el borde de la celda
+                ctx.fillStyle = '#ccc';
+                ctx.fillRect(xPos, yPos, CELL_SIZE, CELL_SIZE);
+
+                // Dibujar el interior de la celda (si está ocupada)
+                if (board[y][x]) {
+                    ctx.fillStyle = PIECE_COLORS[board[y][x] - 1];
+                    ctx.fillRect(xPos + BORDER_WIDTH, yPos + BORDER_WIDTH, CELL_SIZE - BORDER_WIDTH * 2, CELL_SIZE - BORDER_WIDTH * 2);
+                }
+            }
+        }
+
+        function getRandomPiece() {
+            // Elegir una forma de pieza aleatoria de la lista PIECE_SHAPES
+            const randomIndex = Math.floor(Math.random() * PIECE_SHAPES.length);
+            const shape = PIECE_SHAPES[randomIndex];
+
+            // Crear un objeto de pieza con la forma y el color aleatorios
+            const piece = {
+                shape: shape,
+                color: PIECE_COLORS[randomIndex]
+            };
+
+            return piece;
+        }
+
+        function drawPiece(piece, x, y) {
+            // Dibujar la forma de la pieza en el canvas
+            for (let row = 0; row < piece.shape.length; row++) {
+                for (let col = 0; col < piece.shape[row].length; col++) {
+                    if (piece.shape[row][col]) {
+                        const xPos = (x + col) * CELL_SIZE;
+                        const yPos = (y + row) * CELL_SIZE;
+                        ctx.fillStyle = piece.color;
+                        ctx.fillRect(xPos + BORDER_WIDTH, yPos + BORDER_WIDTH, CELL_SIZE - BORDER_WIDTH * 2, CELL_SIZE - BORDER_WIDTH * 2);
+                    }
+                }
+            }
+        }
+
+        function erasePiece(piece, x, y) {
+            // Borrar la forma de la pieza del canvas
+            for (let row = 0; row < piece.shape.length; row++) {
+                for (let col = 0; col < piece.shape[row].length; col++) {
+                    if (piece.shape[row][col]) {
+                        const xPos = (x + col) * CELL_SIZE;
+                        const yPos = (y + row) * CELL_SIZE;
+                        ctx.clearRect(xPos, yPos, CELL_SIZE, CELL_SIZE);
+                    }
+                }
+            }
+        }
+
+
+        function play_game() {
+            
+            erasePiece(currentPiece, currentX, currentY);
+            currentY = currentY + 1;
+            drawPiece(currentPiece, currentX, currentY);
+
+            setTimeout(play_game, TICK_TIME);
+        }
+
+        play_game();
+
+    </script>
+</body>
+
+</html>

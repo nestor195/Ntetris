@@ -12,11 +12,16 @@
 
     <canvas id="canvas"></canvas>
     <script>
+
+        // Obtener referencia al canvas y al contexto de dibujo
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+
         // Constantes
-        const BOARD_WIDTH = 10;
-        const BOARD_HEIGHT = 20;
-        const PIECE_COLORS = ['#FF0000', '#00FF00', '#0000FF', '#FFFF00', '#00FFFF', '#FF00FF', '#FFFFFF'];
-        const PIECE_SHAPES = [
+        const board_width = 10;
+        const board_height = 20;
+        const piece_colors = ['#FF0000', '#00FF00', '#0000FF', '#FFFF00', '#00FFFF', '#FF00FF', '#FFFFFF'];
+        const piece_shapes = [
             // I
             [
                 [1, 1, 1, 1]
@@ -52,42 +57,23 @@
                 [0, 7, 7]
             ]
         ];
-        const TICK_TIME = 1000; // 1000ms = 1 segundo
+
 
         // Variables
-        let board = [
-            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-        ];
-        let currentPiece = null;
+        const board = [];
+        let currentPiece = getRandomPiece();
         let currentX = 0;
-        let currentY = -1;
+        let currentY = 0;
         let score = 0;
         let lines = 0;
         let gameOver = false;
-        currentPiece = getRandomPiece();
-
-        // Obtener referencia al canvas y al contexto de dibujo
-        const canvas = document.getElementById('canvas');
-        const ctx = canvas.getContext('2d');
+        let down_time = 100; // 1000ms = 1 segundo
+        for (let i = 0; i < board_height; i++) {
+            board[i] = [];
+            for (let j = 0; j < board_width; j++) {
+                board[i][j] = 0;
+            }
+        }
 
         // Definir tamaño del canvas
         canvas.width = 300;
@@ -98,37 +84,44 @@
         ctx.fillRect(0, 0, canvas.width, canvas.height);
 
         // Definir tamaño de las celdas y bordes
-        const CELL_SIZE = 30;
-        const BORDER_WIDTH = 2;
+        const border_width = 1;
+        const cell_size = (canvas.width / board_width);
+        const cell_size_x = (canvas.width / board_width);
+        const cell_size_y = (canvas.height / board_height);
+
 
         // Dibujar las celdas del tablero
-        for (let y = 0; y < BOARD_HEIGHT; y++) {
-            for (let x = 0; x < BOARD_WIDTH; x++) {
-                // Calcular la posición en píxeles de la celda
-                const xPos = x * CELL_SIZE;
-                const yPos = y * CELL_SIZE;
-
-                // Dibujar el borde de la celda
-                ctx.fillStyle = '#ccc';
-                ctx.fillRect(xPos, yPos, CELL_SIZE, CELL_SIZE);
-
-                // Dibujar el interior de la celda (si está ocupada)
-                if (board[y][x]) {
-                    ctx.fillStyle = PIECE_COLORS[board[y][x] - 1];
-                    ctx.fillRect(xPos + BORDER_WIDTH, yPos + BORDER_WIDTH, CELL_SIZE - BORDER_WIDTH * 2, CELL_SIZE - BORDER_WIDTH * 2);
+        function draw_board() {
+            ctx.fillStyle = '#000'; // dibuja el fondo del tablero
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            for (let y = 0; y < board_height; y++) {
+                for (let x = 0; x < board_width; x++) {
+                    // Calcular la posición en píxeles de la celda
+                    const xPos = x * cell_size;
+                    const yPos = y * cell_size;
+                    // Dibujar la celda (si está ocupada)
+                    if (board[y][x]) {
+                        // Dibujar el borde de la celda
+                        ctx.fillStyle = '#ccc';
+                        ctx.fillRect(xPos, yPos, cell_size, cell_size);
+                        // Dibujar la celda
+                        ctx.fillStyle = piece_colors[board[y][x] - 1];
+                        ctx.fillRect(xPos + border_width, yPos + border_width, cell_size - border_width * 2, cell_size - border_width * 2);
+                    }
                 }
             }
         }
 
+
         function getRandomPiece() {
-            // Elegir una forma de pieza aleatoria de la lista PIECE_SHAPES
-            const randomIndex = Math.floor(Math.random() * PIECE_SHAPES.length);
-            const shape = PIECE_SHAPES[randomIndex];
+            // Elegir una forma de pieza aleatoria de la lista piece_shapes
+            const randomIndex = Math.floor(Math.random() * piece_shapes.length);
+            const shape = piece_shapes[randomIndex];
 
             // Crear un objeto de pieza con la forma y el color aleatorios
             const piece = {
                 shape: shape,
-                color: PIECE_COLORS[randomIndex]
+                color: piece_colors[randomIndex]
             };
 
             return piece;
@@ -139,10 +132,10 @@
             for (let row = 0; row < piece.shape.length; row++) {
                 for (let col = 0; col < piece.shape[row].length; col++) {
                     if (piece.shape[row][col]) {
-                        const xPos = (x + col) * CELL_SIZE;
-                        const yPos = (y + row) * CELL_SIZE;
+                        const xPos = (x + col) * cell_size;
+                        const yPos = (y + row) * cell_size;
                         ctx.fillStyle = piece.color;
-                        ctx.fillRect(xPos + BORDER_WIDTH, yPos + BORDER_WIDTH, CELL_SIZE - BORDER_WIDTH * 2, CELL_SIZE - BORDER_WIDTH * 2);
+                        ctx.fillRect(xPos + border_width, yPos + border_width, cell_size - border_width * 2, cell_size - border_width * 2);
                     }
                 }
             }
@@ -153,9 +146,9 @@
             for (let row = 0; row < piece.shape.length; row++) {
                 for (let col = 0; col < piece.shape[row].length; col++) {
                     if (piece.shape[row][col]) {
-                        const xPos = (x + col) * CELL_SIZE;
-                        const yPos = (y + row) * CELL_SIZE;
-                        ctx.clearRect(xPos, yPos, CELL_SIZE, CELL_SIZE);
+                        const xPos = (x + col) * cell_size;
+                        const yPos = (y + row) * cell_size;
+                        ctx.clearRect(xPos, yPos, cell_size, cell_size);
                     }
                 }
             }
@@ -163,15 +156,80 @@
 
 
         function play_game() {
-            
-            erasePiece(currentPiece, currentX, currentY);
-            currentY = currentY + 1;
-            drawPiece(currentPiece, currentX, currentY);
 
-            setTimeout(play_game, TICK_TIME);
+            ctx.clearRect(0, 0, canvas.width, canvas.height); // boarra tablero
+            draw_board();
+            if (isPieceOverlap(currentPiece, currentX, currentY)) {
+                placePieceOnBoard(currentPiece, currentX, currentY - 1);
+                currentPiece = getRandomPiece();
+                currentX = 0;
+                currentY = 0;
+            }
+
+            drawPiece(currentPiece, currentX, currentY);
+            setTimeout(() => {
+                currentY = currentY + 1;
+                play_game();
+            }, down_time);
         }
 
         play_game();
+
+        function isPieceOverlap(piece, x, y) {
+            // Comprobar cada celda de la pieza si se superpone con alguna celda del tablero
+            for (let row = 0; row < piece.shape.length; row++) {
+                for (let col = 0; col < piece.shape[row].length; col++) {
+                    if (piece.shape[row][col]) {
+                        const boardRow = y + row;
+                        const boardCol = x + col;
+                        // Comprobar si la celda de la pieza se superpone con una celda del tablero
+                        if (boardRow < 0 || boardRow >= board_height || boardCol < 0 || boardCol >= board_width || board[boardRow][boardCol]) {
+                            return true;
+                        }
+                    }
+                }
+            }
+            return false;
+        }
+
+        function placePieceOnBoard(piece, x, y) {
+            // Copiar cada celda de la pieza al tablero
+            console.log(board);
+            for (let row = 0; row < piece.shape.length; row++) {
+                for (let col = 0; col < piece.shape[row].length; col++) {
+                    if (piece.shape[row][col]) {
+                        const boardRow = y + row;
+                        const boardCol = x + col;
+                        board[boardRow][boardCol] = piece.color;
+                    }
+                }
+            }
+        }
+
+        document.addEventListener('keydown', function (event) {
+            switch (event.keyCode) {
+                case 37: // Flecha izquierda
+                if (!isPieceOverlap(currentPiece, currentX - 1, currentX)){
+                        erasePiece(currentPiece, currentX, currentY);
+                        currentX = currentX - 1;
+                        drawPiece(currentPiece, currentY);
+                    }
+                    break;
+                case 38: // Flecha arriba
+                    // Manejar el movimiento hacia arriba
+                    break;
+                case 39: // Flecha derecha
+                    if (!isPieceOverlap(currentPiece, currentX + 1, currentX)){
+                        erasePiece(currentPiece, currentX, currentY);
+                        currentX = currentX + 1;
+                        drawPiece(currentPiece, currentY);
+                    }
+                    break;
+                case 40: // Flecha abajo
+                    // Manejar el movimiento hacia abajo
+                    break;
+            }
+        });
 
     </script>
 </body>

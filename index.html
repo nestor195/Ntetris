@@ -23,39 +23,58 @@
         const piece_colors = ['#FF0000', '#00FF00', '#0000FF', '#FFFF00', '#00FFFF', '#FF00FF', '#FFFFFF'];
         const piece_shapes = [
             // I
-            [
-                [1, 1, 1, 1]
-            ],
+            {
+                shape:[[1, 1, 1, 1]],
+                color: 'red',
+            },
             // J
-            [
-                [0, 0, 2],
-                [2, 2, 2]
-            ],
+            {
+                shape:[
+                    [0, 0, 2],
+                    [2, 2, 2]
+                ],
+                color: 'white',
+            },
             // L
-            [
-                [3, 0, 0],
-                [3, 3, 3]
-            ],
+            {
+                shape:[
+                    [3, 0, 0],
+                    [3, 3, 3]
+                ],
+                color: 'magenta',
+            },
             // O
-            [
-                [4, 4],
-                [4, 4]
-            ],
+            {
+                shape:[
+                    [4, 4],
+                    [4, 4]
+                ],
+                color: 'blue',
+            },
             // S
-            [
-                [0, 5, 5],
-                [5, 5, 0]
-            ],
+            {
+                shape:[
+                    [0, 5, 5],
+                    [5, 5, 0]
+                ],
+                color: 'green',
+            },
             // T
-            [
-                [0, 6, 0],
-                [6, 6, 6]
-            ],
+            {
+                shape:[
+                    [0, 6, 0],
+                    [6, 6, 6]
+                ],
+                color: 'brown',
+            },
             // Z
-            [
-                [7, 7, 0],
-                [0, 7, 7]
-            ]
+            {
+                shape:[
+                    [7, 7, 0],
+                    [0, 7, 7]
+                ],
+                color: 'cyan',
+            }
         ];
 
 
@@ -116,13 +135,13 @@
         function getRandomPiece() {
             // Elegir una forma de pieza aleatoria de la lista piece_shapes
             const randomIndex = Math.floor(Math.random() * piece_shapes.length);
-            const shape = piece_shapes[randomIndex];
+            const piece = piece_shapes[randomIndex];
 
             // Crear un objeto de pieza con la forma y el color aleatorios
-            const piece = {
-                shape: shape,
-                color: piece_colors[randomIndex]
-            };
+            // const piece = {
+            //     shape: shape,
+            //     color: piece_colors[randomIndex]
+            // };
 
             return piece;
         }
@@ -158,13 +177,14 @@
         function play_game() {
 
             ctx.clearRect(0, 0, canvas.width, canvas.height); // boarra tablero
-            draw_board();
+            
             if (isPieceOverlap(currentPiece, currentX, currentY)) {
                 placePieceOnBoard(currentPiece, currentX, currentY - 1);
                 currentPiece = getRandomPiece();
                 currentX = 0;
                 currentY = 0;
             }
+            draw_board();
 
             drawPiece(currentPiece, currentX, currentY);
             setTimeout(() => {

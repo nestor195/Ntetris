@@ -32,7 +32,7 @@
                     [0, 0, 2],
                     [2, 2, 2]
                 ],
-                color: 'white',
+                color: 'magenta',
             },
             // L
             {
@@ -40,7 +40,7 @@
                     [3, 0, 0],
                     [3, 3, 3]
                 ],
-                color: 'magenta',
+                color: 'yellow',
             },
             // O
             {
@@ -56,7 +56,7 @@
                     [0, 5, 5],
                     [5, 5, 0]
                 ],
-                color: 'green',
+                color: 'cyan',
             },
             // T
             {
@@ -64,7 +64,7 @@
                     [0, 6, 0],
                     [6, 6, 6]
                 ],
-                color: 'brown',
+                color: 'green',
             },
             // Z
             {
@@ -72,13 +72,13 @@
                     [7, 7, 0],
                     [0, 7, 7]
                 ],
-                color: 'cyan',
+                color: 'orange',
             }
         ];
 
 
         // Variables
-        const board = [];
+
         let currentPiece = getRandomPiece(null);
         let currentX = 0;
         let currentY = 0;
@@ -86,6 +86,8 @@
         let lines = 0;
         let gameOver = false;
         let down_time = 1000; // 1000ms = 1 segundo
+        const board = [];
+
         for (let i = 0; i < board_height; i++) {
             board[i] = [];
             for (let j = 0; j < board_width; j++) {
@@ -93,7 +95,7 @@
             }
         }
 
-        // Definir tama�o del canvas
+        // Definir tamaño del canvas
         canvas.width = 100;
         canvas.height = 200;
 
@@ -101,7 +103,7 @@
         ctx.fillStyle = '#000';
         ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-        // Definir tama�o de las celdas y bordes
+        // Definir tamaño de las celdas y bordes
         const border_width = 0;
         const cell_size = (canvas.width / board_width);
         const cell_size_x = (canvas.width / board_width);
@@ -113,10 +115,10 @@
             ctx.fillRect(0, 0, canvas.width, canvas.height);
             for (let y = 0; y < board_height; y++) {
                 for (let x = 0; x < board_width; x++) {
-                    // Calcular la posici�n en p�xeles de la celda
+                    // Calcular la posición en píxeles de la celda
                     const xPos = x * cell_size_x;
                     const yPos = y * cell_size_y;
-                    // Dibujar la celda (si est� ocupada)
+                    // Dibujar la celda (si está ocupada)
                     if (board[y][x]) {
                         // Dibujar el borde de la celda
                         ctx.fillStyle = '#ccc';
@@ -186,6 +188,9 @@
                 currentX = 0;
                 currentY = 0;
             }
+
+            removed_rows = checkAndRemoveRows(board);
+            console.log(removed_rows);
             draw_board();
 
             drawPiece(currentPiece, currentX, currentY);
@@ -216,7 +221,6 @@
 
         function placePieceOnBoard(piece, x, y) {
             // Copiar cada celda de la pieza al tablero
-            console.log(board);
             for (let row = 0; row < piece.shape.length; row++) {
                 for (let col = 0; col < piece.shape[row].length; col++) {
                     if (piece.shape[row][col]) {
@@ -266,7 +270,7 @@
                     }
                     break;
                 case 38: // Flecha arriba
-                
+
                     break;
                 case 39: // Flecha derecha
                     if (!isPieceOverlap(currentPiece, currentX + 1, currentY)) {
@@ -300,6 +304,46 @@
                     break;
             }
         });
+
+        function checkAndRemoveRows_old(board) {
+            let rowsRemoved = 0;
+            // Recorremos cada fila del tablero de abajo hacia arriba
+            for (let row = board.length - 1; row >= 0; row--) {
+                // Si la fila está completa, la eliminamos
+                if (board[row].every(cell => cell != 0)) {
+                    board.splice(row, 1);
+                    rowsRemoved++;
+                    // Agregamos una fila vacía al inicio del tablero
+                    board.unshift(Array(board[0].length).fill(0));
+                }
+            }
+
+            return rowsRemoved;
+        }
+        function checkAndRemoveRows(board) {
+            let filasEliminadas = 0;
+            for (let i = board.length - 1; i >= 0; i--) {
+                if (board[i].every(cell => cell !== 0)) { // si todas las celdas de la fila no son 0
+                    board.splice(i, 1); // eliminar fila i
+                    filasEliminadas++;
+                }
+            }
+            // Agregar filas vacías en la parte superior del tablero
+            for (let i = 0; i < filasEliminadas; i++) {
+                board.unshift(Array(board[0].length).fill(0));
+            }
+            // Mover filas hacia abajo según el número de filas eliminadas
+            // for (let i = board.length - 1; i >= 0; i--) {
+            //     if (board[i].every(cell => cell === 0)) { // si la fila está vacía
+            //         board.splice(i, 1); // eliminar fila i
+            //     } else if (filasEliminadas > 0) {
+            //         board[i + filasEliminadas] = board[i]; // mover fila i hacia abajo
+            //         board[i] = Array(board[0].length).fill(0); // rellenar fila i con celdas vacías
+            //     }
+            // }
+            return filasEliminadas;
+        }
+
 
     </script>
 </body>
